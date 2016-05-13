@@ -8,8 +8,14 @@ class MenuItem : public Gtk::MenuItem {
 public:
 	MenuItem(Glib::RefPtr<Gio::AppInfo>&& appinfo);
 	MenuItem(const MenuItem&) = delete;
+
+	/* force creation of move ctor, otherwise,
+	 * the stl will try to use copy ctor
+	 * which is invalid for Gtk::Widget */
 	MenuItem(MenuItem&&) = default;
+
 	const std::string& getName() const;
+
 	void execute();
 private:
 	Glib::RefPtr<Gio::AppInfo> appinfo;

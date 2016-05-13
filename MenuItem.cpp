@@ -29,6 +29,7 @@ void MenuItem::execute()
 	this->appinfo->launch(std::vector<Glib::RefPtr<Gio::File>>(), ctx);
 }
 
+/* sort alphabetically */
 bool operator <(const MenuItem& m1, const MenuItem& m2)
 {
 	return m1.getName() < m2.getName();

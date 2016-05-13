@@ -21,7 +21,10 @@ int main(int argc, char** argv)
 			}
 		}
 	}
+	/* sort items according to operator< */
 	items.sort();
+
+	/* bind methods and add to menu */
 	for (auto&& item : items)
 	{
 		item.signal_activate().connect (sigc::mem_fun(item, &MenuItem::execute));
