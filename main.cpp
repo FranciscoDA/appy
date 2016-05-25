@@ -1,48 +1,57 @@
 
+#include <iostream>
 #include <gtkmm.h>
 #include <list>
+#include <set>
 
-#include "MenuItem.hpp"
+#include "ApplicationItem.hpp"
+#include "Category.hpp"
 
 int main(int argc, char** argv)
 {
-	auto gtkapplication = Gtk::Application::create(argc, argv, "com.altoe.appy");
+	auto gtkapplication = Gtk::Application::create(argc, argv, "com.flacko.appy");
 	Gtk::Menu menu;
 	Gio::init();
-	std::list<MenuItem> items;
 
-	for (auto app : Gio::DesktopAppInfo::get_all ())
+	Category::initializeCategories();
+
+	for (auto app : Gio::AppInfo::get_all ())
 	{
-		if (app->should_show())
+		auto dapp = Gio::DesktopAppInfo::create(app->get_id());
+		if (dapp && dapp->should_show() && dapp->get_icon())
 		{
-			if (app->get_icon())
+			auto appitems = Category::categorize(dapp);
+			for (auto& app : appitems)
 			{
-				items.push_back (MenuItem (std::move (app)));
+				app->signal_activate().connect ([dapp] () {
+					dapp->launch_uri("");
+				});
 			}
 		}
 	}
-	/* sort items according to operator< */
-	items.sort();
 
-	/* bind methods and add to menu */
-	for (auto&& item : items)
+	for (auto& cat : Category::mainCategories)
 	{
-		item.signal_activate().connect (sigc::mem_fun(item, &MenuItem::execute));
-		menu.add(item);
+		menu.add(*cat);
+		/*cat->signal_select().connect([&cat] () -> void {
+			cat->expand();
+		});*/
+		std::cout << cat->getDisplayName() << std::endl;
+		for (auto& app : cat->getApplications())
+		{
+			std::cout << '\t' << app->getName() << std::endl;
+		}
 	}
 
-	auto quit = [&gtkapplication](GdkEventAny* any) -> void
-	{
+	menu.signal_deactivate().connect([&gtkapplication]() {
 		gtkapplication->quit();
-	};
+	});
+	menu.signal_delete_event().connect ([&gtkapplication](GdkEventAny*) {
+		gtkapplication->quit();
+		return false;
+	});
 
-	/* bind nullptr to argument and connect to deactivate signal */
-	menu.signal_deactivate().connect (sigc::bind (quit, nullptr));
-
-	/* bind return false and connect to delete signal */
-	menu.signal_delete_event().connect (sigc::bind_return (quit, false));
-
-	menu.set_reserve_toggle_size(false);
+	menu.set_reserve_toggle_size (false);
 	menu.show_all ();
 	menu.popup (0, 0);
 
