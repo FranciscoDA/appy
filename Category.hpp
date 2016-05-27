@@ -8,7 +8,6 @@
 #ifndef CATEGORY_HPP_
 #define CATEGORY_HPP_
 
-#include <algorithm>
 #include <map>
 #include <set>
 #include <gtkmm.h>
@@ -16,55 +15,43 @@
 
 #include "ApplicationItem.hpp"
 
+template <class ... Args> using List = std::list<Args...>;
+template <class ... Args> using Map  = std::map<Args...>;
+template <class ... Args> using Set  = std::set<Args...>;
+
+using String = std::string;
+
 class Category : public Gtk::MenuItem {
-public:
-	typedef std::shared_ptr<Category> ptr_t;
-	typedef std::shared_ptr<ApplicationItem> item_ptr_t;
 private:
-	struct set_comparator
+	using ItemPtr = std::shared_ptr<ApplicationItem>;
+	struct SetCmp
 	{
-		bool operator()(const item_ptr_t& a, const item_ptr_t& b)
+		bool operator()(const ItemPtr& a, const ItemPtr& b)
 		{
-			auto ita = a->getName().begin();
-			auto itb = b->getName().begin();
-			while (ita != a->getName().end() && itb != b->getName().end())
-			{
-				if (std::tolower (*ita) < std::tolower (*itb))
-				{
-					return true;
-				}
-				else if (std::tolower (*itb) < std::tolower (*ita))
-				{
-					return false;
-				}
-				++ita;
-				++itb;
-			}
-			/* a was shorter */
-			if (ita == a->getName().end())
-				return true;
-			return false;
+			return *a < *b;
 		}
 	};
 protected:
-	std::string display_name;
-	static std::map<std::string, ptr_t> mainCategories_map;
-	std::set<item_ptr_t, set_comparator> applications;
-	Gtk::Image image;
-	Gtk::Label label;
-	Gtk::Box box;
-	Gtk::Menu submenu;
+	String               displayName;
+	Set<ItemPtr, SetCmp> applications;
+	Gtk::Image           image;
+	Gtk::Label           label;
+	Gtk::Box             box;
+	Gtk::Menu            submenu;
 public:
-	Category(std::string&& name, std::string&& iconName);
-	Category(Category&&) = default;
+	Category (const String& name, const String& iconName);
+	Category (Category&&) = default;
 
-	const item_ptr_t addApplication (const Glib::RefPtr<Gio::DesktopAppInfo>& appinfo);
-	const decltype(applications)& getApplications () const;
-	const std::string& getDisplayName() const;
+	void                        add (const ItemPtr& item);
+	const Set<ItemPtr, SetCmp>& getApplications () const;
+	const String&               getDisplayName()   const;
 
+private:
+	static Map<String, std::shared_ptr<Category>> mainCategoriesMap;
+public:
+	static List<std::shared_ptr<Category>> mainCategories;
 	static void initializeCategories ();
-	static std::list<ptr_t> mainCategories;
-	static std::list<item_ptr_t> categorize (const Glib::RefPtr<Gio::DesktopAppInfo>& appinfo);
+	static void categorize (const Glib::RefPtr<Gio::DesktopAppInfo>& appinfo);
 };
 
 #endif /* CATEGORY_HPP_ */

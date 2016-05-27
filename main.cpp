@@ -14,32 +14,17 @@ int main(int argc, char** argv)
 	Gio::init();
 
 	Category::initializeCategories();
+	for (auto& cat : Category::mainCategories)
+	{
+		menu.add(*cat);
+	}
 
 	for (auto app : Gio::AppInfo::get_all ())
 	{
 		auto dapp = Gio::DesktopAppInfo::create(app->get_id());
 		if (dapp && dapp->should_show() && dapp->get_icon())
 		{
-			auto appitems = Category::categorize(dapp);
-			for (auto& app : appitems)
-			{
-				app->signal_activate().connect ([dapp] () {
-					dapp->launch_uri("");
-				});
-			}
-		}
-	}
-
-	for (auto& cat : Category::mainCategories)
-	{
-		menu.add(*cat);
-		/*cat->signal_select().connect([&cat] () -> void {
-			cat->expand();
-		});*/
-		std::cout << cat->getDisplayName() << std::endl;
-		for (auto& app : cat->getApplications())
-		{
-			std::cout << '\t' << app->getName() << std::endl;
+			Category::categorize(dapp);
 		}
 	}
 
