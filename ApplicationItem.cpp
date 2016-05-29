@@ -1,5 +1,6 @@
 
 #include <algorithm>
+#include <vector>
 
 #include "ApplicationItem.hpp"
 
@@ -21,7 +22,7 @@ ApplicationItem::ApplicationItem(const Glib::RefPtr<Gio::DesktopAppInfo>& appinf
 	this->add (this->box);
 
 	this->signal_activate().connect([appinfo]() {
-		appinfo->launch_uri("");
+		appinfo->launch(std::vector<Glib::RefPtr<Gio::File>>());
 	});
 }
 
@@ -35,7 +36,7 @@ const Glib::RefPtr<Gio::DesktopAppInfo>& ApplicationItem::getAppInfo() const
 	return this->appinfo;
 }
 
-bool operator<(const ApplicationItem& a, const ApplicationItem& b)
+bool operator< (const ApplicationItem& a, const ApplicationItem& b)
 {
 	auto cmp = [] (const char s, const char t) { return std::tolower(s) < std::tolower(t); };
 

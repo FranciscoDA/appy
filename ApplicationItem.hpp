@@ -33,6 +33,6 @@ public:
  * whose name should be alphabetically
  * ordered first.
  */
-bool operator<(const ApplicationItem& a, const ApplicationItem& b);
+bool operator< (const ApplicationItem& a, const ApplicationItem& b);
 
 #endif
